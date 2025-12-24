@@ -4,6 +4,7 @@ from .async_client import AsyncMinerUClient
 from .config import Config
 from .exceptions import *
 from .models import *
+from dotenv import load_dotenv
 
 __version__ = "1.0.0"
 __all__ = [
@@ -17,3 +18,5 @@ __all__ = [
     "MinerUException", "AuthenticationError", "TaskNotFoundError",
     "ParseError", "TimeoutError", "RateLimitError", "ApiResponseError"
 ]
+
+load_dotenv()
