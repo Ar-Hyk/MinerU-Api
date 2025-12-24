@@ -141,7 +141,7 @@ class AsyncMinerUClient:
 
     async def create_task_from_url(self, url: str = None, req: RequestUrlFile = None) -> TaskInfo:
         """从URL创建单个文件解析任务"""
-        if req is None: req = RequestUrlFile(url=url)
+        if url is not None: req = RequestUrlFile(url=url)
         if req is None: raise ValueError('请传入url或RequestUrlFile')
         result = await self._send_request("POST", "extract/task", json=req.dict)
         return result
