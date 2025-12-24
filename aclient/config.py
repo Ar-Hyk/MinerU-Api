@@ -25,7 +25,7 @@ class Config:
     ):
         """
         初始化加载配置，优先级逻辑：传入参数 > 环境变量 > 默认值
-        :param api_token: 必须，从环境变量MINERU_API_TOKEN中读取
+        :param api_token: 非必须，无则从从环境变量MINERU_API_TOKEN中读取
         :param base_url: 非必须，从环境变量MINERU_API_BASE_URL中读取
         :param timeout: 非必须，从环境变量MINERU_TIMEOUT中读取
         :param poll_interval: 非必须，从环境变量MINERU_POLL_INTERVAL中读取
