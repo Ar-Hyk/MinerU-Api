@@ -19,10 +19,12 @@ class ModelVersion(str, Enum):
 
 
 class TaskStatus(str, Enum):
+    # 任务处理状态，完成: done，pending: 排队中，running: 正在解析，failed：解析失败，converting：格式转换中
+    DONE = "done"
     PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
+    RUNNING = "running"
     FAILED = "failed"
+    CONVERTING = "converting"
 
 
 class Language(str, Enum):
@@ -171,12 +173,24 @@ class TaskInfo:
         )
 
     @property
-    def is_completed(self) -> bool:
-        return self.status == TaskStatus.COMPLETED
+    def is_done(self) -> bool:
+        return self.status == TaskStatus.DONE and self.full_zip_url
+
+    @property
+    def is_pending(self) -> bool:
+        return self.status == TaskStatus.PENDING
+
+    @property
+    def is_running(self) -> bool:
+        return self.status == TaskStatus.RUNNING
 
     @property
     def is_failed(self) -> bool:
         return self.status == TaskStatus.FAILED
+
+    @property
+    def is_converting(self) -> bool:
+        return self.status == TaskStatus.CONVERTING
 
 
 @dataclass

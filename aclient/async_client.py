@@ -3,6 +3,9 @@ import asyncio
 from pathlib import Path
 from typing import Union, AsyncGenerator
 
+import aiofiles
+from tqdm.asyncio import tqdm_asyncio
+
 import aiohttp
 from aiohttp import ClientTimeout
 
@@ -150,6 +153,32 @@ class AsyncMinerUClient:
         """获取任务详情"""
         result = await self._send_request("GET", f"extract/task/{task_id}")
         return TaskInfo.from_dict(result.data)
+
+    async def download(self, task_info:TaskInfo, dir_path:str = 'data'):
+        if not task_info.is_done: raise ValueError(f'任务尚未完成！{task_info}')
+        path = Path(dir_path)/(task_info.full_zip_url.split("/")[-1].split("?")[0])
+        path.parent.mkdir(exist_ok=True)
+        # 断点续传
+        resume = path.stat().st_size if path.exists() else 0
+        headers = {"Range": f"bytes={resume}-"} if resume else {}
+        try:
+            await self._ensure_session()
+            async with self._session.get(task_info.full_zip_url, headers=headers) as response:
+                # 「Range 请求的范围无效」
+                if response.status == 416:  return path.resolve()
+                response.raise_for_status()
+                # 计算总长度
+                total = int(response.headers.get("Content-Length", 0)) + resume
+                with tqdm_asyncio(total=total, initial=resume, unit="B", unit_scale=True, desc=path.name) as bar:
+                    async with aiofiles.open(path, "ab" if resume else "wb") as f:
+                        async for c in response.content.iter_chunked(64<<10):
+                            await f.write(c)
+                            bar.update(len(c))
+                return path.resolve()
+
+        except Exception as e:
+            raise RuntimeError(f"下载失败：{task_info.full_zip_url}") from e
+            await asyncio.sleep(1)
 
     async def create_batch_upload_urls(self, files: list[FileInfo] = None, req: RequestUploadFiles = None):
         """申请文件上传链接"""
