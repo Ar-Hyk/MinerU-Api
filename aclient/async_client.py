@@ -126,8 +126,8 @@ class AsyncMinerUClient:
                 raise TimeoutError(f"请求超时（{self.timeout.total}秒）")
 
             except ApiResponseError as e:
-                print(f"API 响应异常 {e.code}: {e.msg}，第 {attempt + 1}/{self.config.max_retries}  次重试...")
                 if attempt < self.config.max_retries:
+                    print(f"API 响应异常 {e.code}: {e.msg}，第 {attempt + 1}/{self.config.max_retries}  次重试...")
                     wait_time = 2 ** attempt  # 指数退避
                     print(f"等待 {wait_time} 秒...")
                     await asyncio.sleep(wait_time)
