@@ -1,17 +1,12 @@
 """MinerU 纯异步客户端"""
 import asyncio
-from functools import lru_cache
+from pathlib import Path
+from typing import Union, AsyncGenerator
 
 import aiohttp
-import json
-from typing import Optional, Dict, Any, List, Union, AsyncGenerator
-from pathlib import Path
-from urllib.parse import urlencode
-
 from aiohttp import ClientTimeout
 
 from .config import Config
-from .exceptions import *
 from .models import *
 
 
@@ -83,8 +78,7 @@ class AsyncMinerUClient:
         """关闭session"""
         if self._session and not self._session.closed: await self._session.close()
 
-
-    def _headers(self, use_content_type:bool=True) -> Dict[str, str]:
+    def _headers(self, use_content_type: bool = True) -> Dict[str, str]:
         """请求头"""
         headers = {"Authorization": f"Bearer {self.config.api_token}"}
         if use_content_type: headers["Content-Type"] = "application/json"
@@ -93,7 +87,7 @@ class AsyncMinerUClient:
     async def _send_request(self, method: str, endpoint: str, **kwargs) -> 'Response':
         """发送请求并处理错误"""
         url = f"{self.config.base_url}/{endpoint}"
-        headers = self._headers(kwargs.get('use_content_type',True))
+        headers = self._headers(kwargs.get('use_content_type', True))
 
         for attempt in range(self.config.max_retries + 1):
             try:
@@ -143,10 +137,9 @@ class AsyncMinerUClient:
             except Exception as e:
                 raise MinerUException(f"请求失败: {str(e)}")
 
-
     # ========== 核心接口 ==========
 
-    async def create_task_from_url(self, url:str=None, req:RequestUrlFile=None) -> TaskInfo:
+    async def create_task_from_url(self, url: str = None, req: RequestUrlFile = None) -> TaskInfo:
         """从URL创建单个文件解析任务"""
         if req is None: req = RequestUrlFile(url=url)
         if req is None: raise ValueError('请传入url或RequestUrlFile')
@@ -158,13 +151,12 @@ class AsyncMinerUClient:
         result = await self._send_request("GET", f"extract/task/{task_id}")
         return TaskInfo.from_dict(result.data)
 
-    async def create_batch_upload_urls(self, files: list[FileInfo] = None,  req:RequestUploadFiles=None):
+    async def create_batch_upload_urls(self, files: list[FileInfo] = None, req: RequestUploadFiles = None):
         """申请文件上传链接"""
         if files is not None: req = RequestUploadFiles(files=files)
         if req is None: raise ValueError('请传入List[FileInfo]或RequestUploadFiles')
         result = await self._send_request("POST", "file-urls/batch", json=req.dict)
         return result
-
 
     async def create_batch_tasks(
             self,

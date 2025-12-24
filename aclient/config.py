@@ -92,4 +92,3 @@ class Config:
             f"Config(api_token={self.api_token!r}, base_url={self.base_url!r}, "
             f"timeout={self.timeout}, poll_interval={self.poll_interval}, max_retries={self.max_retries})"
         )
-
